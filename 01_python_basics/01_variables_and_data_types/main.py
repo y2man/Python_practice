@@ -1,7 +1,7 @@
 my_float = 12.3;
 my_int = 23;
 my_string = "hello world";
-my_bool = true; 
+my_bool = True; 
 my_char = 'a';
 
 #type casting 
@@ -10,5 +10,4 @@ my_char = 'a';
 #to float we use float();
 #to string we use str();
 #to char we use char();
-
 

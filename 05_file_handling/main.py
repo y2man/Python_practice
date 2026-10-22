@@ -22,10 +22,19 @@ file_path = "C:\\Users\\lenovo\\Downloads\\Python_practice\\05_file_handling\\te
 
 
 
-ithems = {"ithem1": 10,"ithem2":20 , "ithem3":30}
+# ithems = {"ithem1": 10,"ithem2":20 , "ithem3":30}
 
-with open(file_path,"w") as file:
-    json.dump(ithems,file)
-    print("the json has been created successfully")
+# with open(file_path,"w") as file:
+#     json.dump(ithems,file)
+#     print("the json has been created successfully")
+
+
+
+print("Current working directory:", os.getcwd())
+
+with open("test2.txt", "r") as file:
+    content = file.read()
+    print(content)
+
 
 
