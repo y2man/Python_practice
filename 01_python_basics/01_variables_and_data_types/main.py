@@ -11,3 +11,9 @@ my_char = 'a';
 #to string we use str();
 #to char we use char();
 
+name = []
+if isinstance:
+    print("it wokes")
+
+
+print(type(name))

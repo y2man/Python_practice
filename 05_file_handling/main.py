@@ -32,9 +32,9 @@ file_path = "C:\\Users\\lenovo\\Downloads\\Python_practice\\05_file_handling\\te
 
 print("Current working directory:", os.getcwd())
 
-with open("test2.txt", "r") as file:
+with open(file_path, "r") as file:
     content = file.read()
-    print(content)
+print(content)
 
 
 

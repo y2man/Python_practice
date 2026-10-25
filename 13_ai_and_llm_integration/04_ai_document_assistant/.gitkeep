@@ -1,0 +1,16 @@
+
+# Environment variables and API secrets
+.env
+.env.*
+!.env.example
+
+# Python cache files
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+venv/
+
+# Local conversation data (may contain private messages)
+data.json
