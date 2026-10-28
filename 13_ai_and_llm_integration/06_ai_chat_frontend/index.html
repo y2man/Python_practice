@@ -1,0 +1,193 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0b0b10">
+    <meta name="description" content="A personal AI chat assistant powered by an AI API.">
+    <title>Isaac AI — Your Personal AI Assistant</title>
+    <meta name="description"
+        content="Meet Isaac AI, your personal assistant for ideas, answers, learning, and creative problem-solving.">
+    <meta name="theme-color" content="#0b0b10">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Isaac AI — Your Personal AI Assistant">
+    <meta property="og:description"
+        content="Explore ideas, get answers, and solve problems with Isaac AI.">
+    <meta name="twitter:card" content="summary">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar" id="sidebar">
+            <a class="brand" href="#" aria-label="Isaac AI home">
+                <span class="brand-icon">✦</span>
+                <span>Isaac AI<span class="brand-dot">.</span></span>
+            </a>
+
+            <button class="new-chat-button" id="new-chat-button" type="button">
+                <span>＋</span> New conversation
+            </button>
+
+            <p class="sidebar-label">YOUR WORKSPACE</p>
+
+            <nav class="sidebar-nav" aria-label="Main navigation">
+                <a href="#" class="nav-item active">
+                    <span>◈</span> Chat
+                </a>
+                <a href="#chat-messages" class="nav-item">
+                    <span>◷</span> Current conversation
+                </a>
+            </nav>
+
+            <div class="sidebar-divider"></div>
+
+            <p class="sidebar-label">RECENT</p>
+            <div class="conversation-list" id="conversation-list">
+                <button class="conversation-item selected" type="button">
+                    <span class="conversation-icon">✧</span>
+                    <span>Getting started</span>
+                </button>
+            </div>
+
+            <div class="sidebar-bottom">
+                <div class="profile-avatar">Y</div>
+                <div class="profile-info">
+                    <strong>My Workspace</strong>
+                    <span>Personal assistant</span>
+                </div>
+                <span class="profile-menu">•••</span>
+            </div>
+        </aside>
+
+        <main class="main-panel">
+            <header class="topbar">
+                <button
+                    class="icon-button mobile-menu-button"
+                    id="mobile-menu-button"
+                    type="button"
+                    aria-label="Toggle sidebar"
+                    aria-expanded="false"
+                >☰</button>
+
+                <div class="topbar-title">
+                    <span class="status-dot"></span>
+                    <span>Isaac AI</span>
+                    <span class="model-label">Assistant</span>
+                </div>
+
+                <button class="icon-button" id="clear-chat-button"
+                    type="button" aria-label="Clear conversation" title="Clear conversation">
+                    ↺
+                </button>
+            </header>
+
+            <section class="chat-layout" aria-label="AI conversation">
+                <div class="welcome-section" id="welcome-section">
+                    <div class="welcome-orb">
+                        <span>✦</span>
+                    </div>
+
+                    <p class="eyebrow">YOUR PERSONAL AI</p>
+                    <h1>Ideas start <span>here.</span></h1>
+                    <p class="welcome-description">
+                        Ask questions, explore ideas, or work through
+                        something you've been thinking about.
+                    </p>
+
+                    <div class="suggestion-grid">
+                        <button class="suggestion-card" type="button"
+                            data-prompt="Explain how APIs work with a simple example.">
+                            <span class="suggestion-icon purple">⌘</span>
+                            <span class="suggestion-text">
+                                <strong>Understand APIs</strong>
+                                <small>Learn with a simple example</small>
+                            </span>
+                            <span class="suggestion-arrow">↗</span>
+                        </button>
+
+                        <button class="suggestion-card" type="button"
+                            data-prompt="Give me a practical Python project idea for my portfolio.">
+                            <span class="suggestion-icon blue">⌘</span>
+                            <span class="suggestion-text">
+                                <strong>Build something</strong>
+                                <small>Find your next project</small>
+                            </span>
+                            <span class="suggestion-arrow">↗</span>
+                        </button>
+
+                        <button class="suggestion-card" type="button"
+                            data-prompt="Help me break a difficult problem into manageable steps.">
+                            <span class="suggestion-icon orange">◇</span>
+                            <span class="suggestion-text">
+                                <strong>Solve a problem</strong>
+                                <small>Think through it step by step</small>
+                            </span>
+                            <span class="suggestion-arrow">↗</span>
+                        </button>
+
+                        <button class="suggestion-card" type="button"
+                            data-prompt="Explain how AI integration works in a real application.">
+                            <span class="suggestion-icon green">✳</span>
+                            <span class="suggestion-text">
+                                <strong>Explore AI</strong>
+                                <small>Turn ideas into applications</small>
+                            </span>
+                            <span class="suggestion-arrow">↗</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div
+                    class="chat-messages"
+                    id="chat-messages"
+                    role="log"
+                    aria-live="polite"
+                    aria-label="Conversation messages"
+                ></div>
+
+                <div class="typing-indicator" id="typing-indicator"
+                    aria-label="AI is thinking" hidden>
+                    <span></span><span></span><span></span>
+                </div>
+
+                <div class="composer-area">
+                    <form class="composer" id="chat-form">
+                        <textarea
+                            id="message-input"
+                            name="message"
+                            placeholder="Message Isaac AI..."
+                            rows="1"
+                            aria-label="Write your message"
+                            required
+                        ></textarea>
+
+                        <div class="composer-footer">
+                    
+                            <button
+                                class="send-button"
+                                id="send-button"
+                                type="submit"
+                                aria-label="Send message"
+                                title="Send message"
+                            >
+                                <span>↑</span>
+                            </button>
+                        </div>
+                    </form>
+
+                    <p class="disclaimer">
+                        AI can make mistakes. Check important information.
+                    </p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
