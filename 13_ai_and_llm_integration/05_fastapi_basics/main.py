@@ -1,4 +1,6 @@
 import json
+from database import test_database_connection
+from sqlalchemy.exc import SQLAlchemyError
 import os
 from groq import Groq, APIStatusError
 from dotenv import load_dotenv
@@ -164,7 +166,13 @@ def get_conversation(conversation_id: str):
     }
 
 
-        
+@app.get("/db-check")
+def db_check():
+    try:
+        result = test_database_connection()
+        return {"database_connected": result == 1}
+    except (SQLAlchemyError, RuntimeError):
+        return {"database_connected": False}      
     
     
         
