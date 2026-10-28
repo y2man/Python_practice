@@ -4,11 +4,22 @@ from groq import Groq, APIStatusError
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, field_validator, Field
+from fastapi.middleware.cors import CORSMiddleware
 
 
 load_dotenv()
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://127.0.0.1:5501",
+        "http://localhost:5501",
+    ],
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type"],
+)
 def save_conversations(conversations):
     with open("conversations.json","w") as file: 
         
