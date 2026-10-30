@@ -1,17 +1,26 @@
 import json
-from database import test_database_connection
-from sqlalchemy.exc import SQLAlchemyError
 import os
+
+from database import engine, test_database_connection
+from models import Base
+from sqlalchemy.exc import SQLAlchemyError
 from groq import Groq, APIStatusError
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, field_validator, Field
 from fastapi.middleware.cors import CORSMiddleware
 
-
 load_dotenv()
 
 app = FastAPI()
+
+
+@app.on_event("startup")
+def create_database_tables():
+    if engine is not None:
+        Base.metadata.create_all(bind=engine)
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -173,8 +182,7 @@ def db_check():
         return {"database_connected": result == 1}
     except (SQLAlchemyError, RuntimeError):
         return {"database_connected": False}      
-    
-    
+
         
         
 
