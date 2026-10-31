@@ -141,6 +141,7 @@ def ask_ai(
             conversation = Conversation(user_id=current_user.id)
             db.add(conversation)
             db.flush()
+            conversation.title = request.prompt[:50]
 
         else:
             conversation = db.query(Conversation).filter(
