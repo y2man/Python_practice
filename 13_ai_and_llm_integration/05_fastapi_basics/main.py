@@ -63,6 +63,18 @@ class RegisterRequest(BaseModel):
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
+class RenameConversationRequest(BaseModel):
+    title: str = Field(min_length=1, max_length=100)
+
+    @field_validator("title")
+    @classmethod
+    def validate_title(cls, value: str) -> str:
+        value = value.strip()
+
+        if not value:
+            raise ValueError("Title cannot be empty.")
+
+        return value
 def create_access_token(user_id: int):
     if not JWT_SECRET:
         raise HTTPException(
@@ -282,7 +294,33 @@ def get_all_conversations(
             for conversation in conversations
         ]
     }
+@app.patch("/conversations/{conversation_id}")
+def rename_conversation(
+    conversation_id: int,
+    request: RenameConversationRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    conversation = db.query(Conversation).filter(
+        Conversation.id == conversation_id,
+        Conversation.user_id == current_user.id
+    ).first()
 
+    if conversation is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Conversation not found."
+        )
+
+    conversation.title = request.title
+    db.commit()
+    db.refresh(conversation)
+
+    return {
+        "message": "Conversation renamed successfully.",
+        "conversation_id": conversation.id,
+        "title": conversation.title
+    }
 @app.get("/conversations/{conversation_id}")
 def get_conversation(
     conversation_id: int,
