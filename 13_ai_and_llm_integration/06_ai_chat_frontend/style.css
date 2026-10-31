@@ -1171,3 +1171,55 @@ button {
 /* Edit / regenerate message actions */
 .message-actions { flex-wrap: wrap; }
 .message-action-button:disabled { opacity: .5; cursor: not-allowed; }
+.edit-message-area {
+    width: 100%;
+}
+
+.edit-message-input {
+    width: 100%;
+    min-height: 100px;
+    resize: vertical;
+    padding: 12px;
+    border: 1px solid var(--border-color, #555);
+    border-radius: 10px;
+    background: var(--input-background, #20232b);
+    color: inherit;
+    font: inherit;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.edit-message-input:focus {
+    border-color: var(--accent-color, #8b7cff);
+}
+
+.edit-message-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.edit-message-buttons button {
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font: inherit;
+}
+
+.edit-cancel-button {
+    background: transparent;
+    color: inherit;
+    border: 1px solid var(--border-color, #555);
+}
+
+.edit-save-button {
+    background: var(--accent-color, #765cff);
+    color: white;
+    border: none;
+}
+
+.edit-message-buttons button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

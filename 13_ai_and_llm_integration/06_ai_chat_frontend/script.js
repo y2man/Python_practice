@@ -171,7 +171,9 @@ function addMessage(role, text, isError = false, messageId = null) {
         edit.type = "button";
         edit.className = "message-action-button";
         edit.textContent = "✎ Edit and resend";
-        edit.addEventListener("click", () => editAndResend(messageId, text));
+        edit.addEventListener("click", () => {
+    editAndResend(messageId, text, body);
+});
         actions.append(edit);
         content.append(actions);
     }
@@ -311,25 +313,37 @@ async function openConversationAfterMutation() {
 }
 
 async function runConversationAction(path, body = undefined, successMessage = "Done.") {
-    if (isSending || !conversationId) return;
+    if (isSending || !conversationId) return false;
+
     isSending = true;
     sendButton.disabled = true;
     messageInput.disabled = true;
     typingIndicator.hidden = false;
     activeRequestController = new AbortController();
     $("stop-button").hidden = false;
+
+    let success = false;
+
     try {
         await apiRequest(path, {
             method: "POST",
             ...(body === undefined ? {} : { body: JSON.stringify(body) }),
             signal: activeRequestController.signal
         });
+
         await openConversationAfterMutation();
         await loadConversations();
+
         showToast(successMessage);
+        success = true;
+
     } catch (error) {
-        if (error.name === "AbortError") showToast("Stopped waiting. The server may still finish its request.");
-        else showToast(error.message);
+        if (error.name === "AbortError") {
+            showToast("Stopped waiting. The server may still finish its request.");
+        } else {
+            showToast(error.message);
+        }
+
     } finally {
         typingIndicator.hidden = true;
         isSending = false;
@@ -338,27 +352,86 @@ async function runConversationAction(path, body = undefined, successMessage = "D
         sendButton.disabled = false;
         messageInput.disabled = false;
     }
-}
 
+    return success;
+}
 function regenerateResponse() {
     if (!conversationId) return;
     runConversationAction(`/conversations/${encodeURIComponent(conversationId)}/regenerate`, undefined, "Response regenerated.");
 }
 
-function editAndResend(messageId, oldPrompt) {
+function editAndResend(messageId, oldPrompt, messageBody) {
     if (!conversationId || isSending) return;
-    const editedPrompt = window.prompt("Edit your message:", oldPrompt);
-    if (editedPrompt === null) return;
-    const prompt = editedPrompt.trim();
-    if (!prompt) {
-        showToast("Message cannot be empty.");
-        return;
-    }
-    runConversationAction(
-        `/conversations/${encodeURIComponent(conversationId)}/edit-and-resend`,
-        { message_id: messageId, prompt },
-        "Message updated and response regenerated."
-    );
+
+    // Don't open multiple editors for the same message.
+    if (messageBody.querySelector(".edit-message-area")) return;
+
+    messageBody.replaceChildren();
+
+    const editor = document.createElement("div");
+    editor.className = "edit-message-area";
+
+    const textarea = document.createElement("textarea");
+    textarea.className = "edit-message-input";
+    textarea.value = oldPrompt;
+    textarea.rows = Math.max(3, Math.min(8, oldPrompt.split("\n").length + 1));
+
+    const buttons = document.createElement("div");
+    buttons.className = "edit-message-buttons";
+
+    const cancelButton = document.createElement("button");
+    cancelButton.type = "button";
+    cancelButton.textContent = "Cancel";
+    cancelButton.className = "edit-cancel-button";
+
+    const saveButton = document.createElement("button");
+    saveButton.type = "button";
+    saveButton.textContent = "Save & resend";
+    saveButton.className = "edit-save-button";
+
+    cancelButton.addEventListener("click", () => {
+        messageBody.textContent = oldPrompt;
+    });
+
+    saveButton.addEventListener("click", async () => {
+        const prompt = textarea.value.trim();
+
+        if (!prompt) {
+            showToast("Message cannot be empty.");
+            return;
+        }
+
+        if (prompt.length > 2000) {
+            showToast("Message cannot exceed 2000 characters.");
+            return;
+        }
+
+        saveButton.disabled = true;
+        cancelButton.disabled = true;
+        saveButton.textContent = "Sending...";
+
+        const success = await runConversationAction(
+            `/conversations/${encodeURIComponent(conversationId)}/edit-and-resend`,
+            {
+                message_id: messageId,
+                prompt: prompt
+            },
+            "Message updated and response regenerated."
+        );
+
+        if (!success) {
+            saveButton.disabled = false;
+            cancelButton.disabled = false;
+            saveButton.textContent = "Save & resend";
+        }
+    });
+
+    buttons.append(cancelButton, saveButton);
+    editor.append(textarea, buttons);
+    messageBody.append(editor);
+
+    textarea.focus();
+    textarea.setSelectionRange(textarea.value.length, textarea.value.length);
 }
 
 
