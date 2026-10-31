@@ -6,3 +6,5 @@ pytest
 httpx
 sqlalchemy
 psycopg[binary]
+pwdlib[argon2]
+PyJWT

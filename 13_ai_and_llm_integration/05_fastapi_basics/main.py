@@ -1,8 +1,11 @@
 import json
 import os
-
+from pwdlib import PasswordHash
+from sqlalchemy.orm import Session
+from fastapi import Depends
+from database import SessionLocal
+from models import Base, User
 from database import engine, test_database_connection
-from models import Base
 from sqlalchemy.exc import SQLAlchemyError
 from groq import Groq, APIStatusError
 from dotenv import load_dotenv
@@ -13,6 +16,7 @@ from fastapi.middleware.cors import CORSMiddleware
 load_dotenv()
 
 app = FastAPI()
+password_hash = PasswordHash.recommended()
 
 
 @app.on_event("startup")
@@ -62,7 +66,9 @@ class PromptRequest(BaseModel):
             raise ValueError("This field cannot be empty or whitespace")
         return value
 
-
+class RegisterRequest(BaseModel):
+    email: str
+    password: str = Field(min_length=8, max_length=128)
 
 api_key = os.getenv("GROQ_API_KEY")
 client = Groq(api_key=api_key)
@@ -183,6 +189,41 @@ def db_check():
     except (SQLAlchemyError, RuntimeError):
         return {"database_connected": False}      
 
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
         
+@app.post("/register")
+def register(
+    request: RegisterRequest,
+    db: Session = Depends(get_db)
+):
+    existing_user = db.query(User).filter(
+        User.email == request.email
+    ).first()
+
+    if existing_user:
+        raise HTTPException(
+            status_code=409,
+            detail="Email is already registered."
+        )
+
+    new_user = User(
+        email=request.email,
+        password_hash=password_hash.hash(request.password)
+    )
+
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    return {
+        "message": "User registered successfully.",
+        "user_id": new_user.id,
+        "email": new_user.email
+    }     
         
 
