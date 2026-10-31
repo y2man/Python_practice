@@ -1,7 +1,7 @@
 import os
 import jwt
 from datetime import datetime, timedelta, timezone
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pwdlib import PasswordHash
 from sqlalchemy.orm import Session
 from fastapi import Depends
@@ -23,7 +23,7 @@ JWT_SECRET = os.getenv("JWT_SECRET")
 JWT_ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+oauth2_scheme = HTTPBearer()
 
 
 @app.on_event("startup")
@@ -92,10 +92,10 @@ def get_db():
     finally:
         db.close()
 def get_current_user(
-    
-    token: str = Depends(oauth2_scheme),
+    credentials: HTTPAuthorizationCredentials = Depends(oauth2_scheme),
     db: Session = Depends(get_db)
 ):
+    token = credentials.credentials
     credentials_exception = HTTPException(
         status_code=401,
         detail="Invalid or expired authentication token.",
