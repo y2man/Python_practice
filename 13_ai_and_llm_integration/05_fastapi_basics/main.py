@@ -259,6 +259,29 @@ def delete_conversation(
 
     return {"message": "Conversation deleted successfully."}
 
+@app.get("/conversations")
+def get_all_conversations(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    conversations = (
+        db.query(Conversation)
+        .filter(Conversation.user_id == current_user.id)
+        .order_by(Conversation.created_at.desc())
+        .all()
+    )
+
+    return {
+        "conversations": [
+            {
+                "conversation_id": conversation.id,
+                "title": conversation.title,
+                "created_at": conversation.created_at,
+            }
+            for conversation in conversations
+        ]
+    }
+
 @app.get("/conversations/{conversation_id}")
 def get_conversation(
     conversation_id: int,
