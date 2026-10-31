@@ -8,3 +8,4 @@ sqlalchemy
 psycopg[binary]
 pwdlib[argon2]
 PyJWT
+email-validator
