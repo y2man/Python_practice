@@ -1,5 +1,8 @@
 import json
 import os
+import jwt
+from datetime import datetime, timedelta, timezone
+from fastapi.security import OAuth2PasswordBearer
 from pwdlib import PasswordHash
 from sqlalchemy.orm import Session
 from fastapi import Depends
@@ -17,6 +20,11 @@ load_dotenv()
 
 app = FastAPI()
 password_hash = PasswordHash.recommended()
+JWT_SECRET = os.getenv("JWT_SECRET")
+JWT_ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 
 @app.on_event("startup")
@@ -69,6 +77,30 @@ class PromptRequest(BaseModel):
 class RegisterRequest(BaseModel):
     email: str
     password: str = Field(min_length=8, max_length=128)
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+def create_access_token(user_id: int):
+    if not JWT_SECRET:
+        raise HTTPException(
+            status_code=500,
+            detail="JWT secret is not configured."
+        )
+
+    expire = datetime.now(timezone.utc) + timedelta(
+        minutes=ACCESS_TOKEN_EXPIRE_MINUTES
+    )
+
+    payload = {
+        "sub": str(user_id),
+        "exp": expire
+    }
+
+    return jwt.encode(
+        payload,
+        JWT_SECRET,
+        algorithm=JWT_ALGORITHM
+    )
 
 api_key = os.getenv("GROQ_API_KEY")
 client = Groq(api_key=api_key)
@@ -226,4 +258,28 @@ def register(
         "email": new_user.email
     }     
         
+@app.post("/login")
+def login(
+    request: LoginRequest,
+    db: Session = Depends(get_db)
+):
+    user = db.query(User).filter(
+        User.email == request.email
+    ).first()
 
+    if not user or not password_hash.verify(
+        request.password,
+        user.password_hash
+    ):
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid email or password."
+        )
+
+    access_token = create_access_token(user.id)
+
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "expires_in": ACCESS_TOKEN_EXPIRE_MINUTES * 60
+    }
