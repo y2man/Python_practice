@@ -1,193 +1,158 @@
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#0b0b10">
-    <meta name="description" content="A personal AI chat assistant powered by an AI API.">
-    <title>Isaac AI — Your Personal AI Assistant</title>
-    <meta name="description"
-        content="Meet Isaac AI, your personal assistant for ideas, answers, learning, and creative problem-solving.">
-    <meta name="theme-color" content="#0b0b10">
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="Isaac AI — Your Personal AI Assistant">
-    <meta property="og:description"
-        content="Explore ideas, get answers, and solve problems with Isaac AI.">
-    <meta name="twitter:card" content="summary">
+    <meta name="theme-color" content="#090914">
+    <meta name="description" content="Isaac AI — a personal AI workspace.">
+    <title>Isaac AI — Your AI Workspace</title>
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-
 </head>
+
 <body>
-    <div class="app-shell">
-        <aside class="sidebar" id="sidebar">
-            <a class="brand" href="#" aria-label="Isaac AI home">
-                <span class="brand-icon">✦</span>
-                <span>Isaac AI<span class="brand-dot">.</span></span>
-            </a>
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+    <div class="noise"></div>
+    <section class="auth-screen" id="auth-screen">
+        <div class="auth-card glass-panel">
+            <a class="brand auth-brand" href="#"><span class="brand-mark">✦</span><span>isaac<span
+                        class="brand-accent">.</span></span></a>
+            <div class="auth-orb"><span>✦</span></div>
+            <p class="eyebrow">YOUR PERSONAL AI WORKSPACE</p>
+            <h1 id="auth-heading">Welcome back<span class="brand-accent">.</span></h1>
+            <p class="auth-subtitle" id="auth-subtitle">Sign in and pick up where your ideas left off.</p>
+            <form id="auth-form" class="auth-form">
+                <label>Email address<input id="auth-email" type="email" autocomplete="email"
+                        placeholder="you@example.com" required></label>
+                <label>Password<input id="auth-password" type="password" autocomplete="current-password" minlength="8"
+                        placeholder="At least 8 characters" required></label>
+                <button class="primary-button auth-submit" id="auth-submit" type="submit">Sign in
+                    <span>↗</span></button>
+            </form>
+            <p class="auth-switch" id="auth-switch">New to Isaac AI? <button type="button" id="auth-toggle">Create an
+                    account</button></p>
+            <p class="auth-error" id="auth-error" role="alert"></p>
+            <p class="auth-footnote">Your conversations are private to your account.</p>
+        </div>
+    </section>
 
-            <button class="new-chat-button" id="new-chat-button" type="button">
-                <span>＋</span> New conversation
-            </button>
-
-            <p class="sidebar-label">YOUR WORKSPACE</p>
-
-            <nav class="sidebar-nav" aria-label="Main navigation">
-                <a href="#" class="nav-item active">
-                    <span>◈</span> Chat
-                </a>
-                <a href="#chat-messages" class="nav-item">
-                    <span>◷</span> Current conversation
-                </a>
-            </nav>
-
-            <div class="sidebar-divider"></div>
-
-            <p class="sidebar-label">RECENT</p>
-            <div class="conversation-list" id="conversation-list">
-                <button class="conversation-item selected" type="button">
-                    <span class="conversation-icon">✧</span>
-                    <span>Getting started</span>
-                </button>
+    <div class="app-shell" id="app-shell" hidden>
+        <aside class="sidebar glass-panel" id="sidebar">
+            <div class="sidebar-top"><a class="brand" href="#"><span class="brand-mark">✦</span><span>isaac<span
+                            class="brand-accent">.</span></span></a><button class="icon-button mobile-close"
+                    id="mobile-close" aria-label="Close menu">×</button></div>
+            <button class="new-chat-button" id="new-chat-button"><span>＋</span> New conversation <kbd>⌘ K</kbd></button>
+            <div class="sidebar-section">
+                <p class="sidebar-label">WORKSPACE</p>
+                <div class="nav-item active"><span>◈</span> AI Chat <span class="nav-live"></span></div>
             </div>
-
+            <div class="history-heading">
+                <p class="sidebar-label">YOUR CONVERSATIONS</p><span id="history-count">0</span>
+            </div>
+            <div class="conversation-list" id="conversation-list">
+                <div class="history-empty">Your conversations will appear here.</div>
+            </div>
             <div class="sidebar-bottom">
-                <div class="profile-avatar">Y</div>
-                <div class="profile-info">
-                    <strong>My Workspace</strong>
-                    <span>Personal assistant</span>
-                </div>
-                <span class="profile-menu">•••</span>
+                <div class="profile-avatar" id="profile-avatar">U</div>
+                <div class="profile-info"><strong id="profile-email">My account</strong><span>Personal workspace</span>
+                </div><button class="icon-button logout-button" id="logout-button" title="Sign out"
+                    aria-label="Sign out">⇥</button>
             </div>
         </aside>
-
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
         <main class="main-panel">
             <header class="topbar">
-                <button
-                    class="icon-button mobile-menu-button"
-                    id="mobile-menu-button"
-                    type="button"
-                    aria-label="Toggle sidebar"
-                    aria-expanded="false"
-                >☰</button>
-
-                <div class="topbar-title">
-                    <span class="status-dot"></span>
-                    <span>Isaac AI</span>
-                    <span class="model-label">Assistant</span>
+                <div class="topbar-left"><button class="icon-button mobile-menu-button" id="mobile-menu-button"
+                        aria-label="Open menu">☰</button>
+                    <div class="topbar-title"><span class="status-dot"></span><span>Isaac AI</span><span
+                            class="model-label">PERSONAL ASSISTANT</span></div>
                 </div>
-
-                <button class="icon-button" id="clear-chat-button"
-                    type="button" aria-label="Clear conversation" title="Clear conversation">
-                    ↺
-                </button>
+                <div class="topbar-actions">
+                    <span class="secure-label"><span>●</span> PRIVATE SESSION</span>
+                    <button class="icon-button" id="export-txt-button" title="Export as TXT" aria-label="Export as TXT">↓T</button>
+                    <button class="icon-button" id="export-pdf-button" title="Export as PDF" aria-label="Export as PDF">↓P</button>
+                    <button class="icon-button" id="clear-chat-button" title="New conversation" aria-label="New conversation">＋</button>
+                </div>
             </header>
-
             <section class="chat-layout" aria-label="AI conversation">
                 <div class="welcome-section" id="welcome-section">
                     <div class="welcome-orb">
-                        <span>✦</span>
+                        <div class="orb-ring ring-one"></div>
+                        <div class="orb-ring ring-two"></div><span>✦</span>
                     </div>
-
-                    <p class="eyebrow">YOUR PERSONAL AI</p>
-                    <h1>Ideas start <span>here.</span></h1>
-                    <p class="welcome-description">
-                        Ask questions, explore ideas, or work through
-                        something you've been thinking about.
-                    </p>
-
-                    <div class="suggestion-grid">
-                        <button class="suggestion-card" type="button"
-                            data-prompt="Explain how APIs work with a simple example.">
-                            <span class="suggestion-icon purple">⌘</span>
-                            <span class="suggestion-text">
-                                <strong>Understand APIs</strong>
-                                <small>Learn with a simple example</small>
-                            </span>
-                            <span class="suggestion-arrow">↗</span>
-                        </button>
-
-                        <button class="suggestion-card" type="button"
-                            data-prompt="Give me a practical Python project idea for my portfolio.">
-                            <span class="suggestion-icon blue">⌘</span>
-                            <span class="suggestion-text">
-                                <strong>Build something</strong>
-                                <small>Find your next project</small>
-                            </span>
-                            <span class="suggestion-arrow">↗</span>
-                        </button>
-
-                        <button class="suggestion-card" type="button"
-                            data-prompt="Help me break a difficult problem into manageable steps.">
-                            <span class="suggestion-icon orange">◇</span>
-                            <span class="suggestion-text">
-                                <strong>Solve a problem</strong>
-                                <small>Think through it step by step</small>
-                            </span>
-                            <span class="suggestion-arrow">↗</span>
-                        </button>
-
-                        <button class="suggestion-card" type="button"
-                            data-prompt="Explain how AI integration works in a real application.">
-                            <span class="suggestion-icon green">✳</span>
-                            <span class="suggestion-text">
-                                <strong>Explore AI</strong>
-                                <small>Turn ideas into applications</small>
-                            </span>
-                            <span class="suggestion-arrow">↗</span>
-                        </button>
-                    </div>
+                    <p class="eyebrow">A LITTLE SPACE FOR BIG IDEAS</p>
+                    <h1>What are we <span>thinking</span><br>about today?</h1>
+                    <p class="welcome-description">Ask anything. Build something. Make your next idea happen.</p>
+                    <div class="suggestion-grid"><button class="suggestion-card"
+                            data-prompt="Explain how APIs work with a simple practical example."><span
+                                class="suggestion-icon">⌘</span><span><strong>Understand something</strong><small>Break
+                                    down a complex idea</small></span><b>↗</b></button><button class="suggestion-card"
+                            data-prompt="Give me a practical Python project idea for my portfolio."><span
+                                class="suggestion-icon blue">⌁</span><span><strong>Build something</strong><small>Find
+                                    your next project</small></span><b>↗</b></button><button class="suggestion-card"
+                            data-prompt="Help me break a difficult problem into manageable steps."><span
+                                class="suggestion-icon orange">◇</span><span><strong>Solve a
+                                    problem</strong><small>Think it through, step by
+                                    step</small></span><b>↗</b></button><button class="suggestion-card"
+                            data-prompt="Explain how AI integration works in a real application."><span
+                                class="suggestion-icon green">✳</span><span><strong>Explore AI</strong><small>Turn ideas
+                                    into applications</small></span><b>↗</b></button></div>
                 </div>
-
-                <div
-                    class="chat-messages"
-                    id="chat-messages"
-                    role="log"
-                    aria-live="polite"
-                    aria-label="Conversation messages"
-                ></div>
-
-                <div class="typing-indicator" id="typing-indicator"
-                    aria-label="AI is thinking" hidden>
-                    <span></span><span></span><span></span>
+                <div class="chat-messages" id="chat-messages" role="log" aria-live="polite"></div>
+                <div class="typing-row" id="typing-indicator" hidden>
+                    <div class="typing-avatar">✦</div>
+                    <div class="typing-bubble"><span></span><span></span><span></span><em>Isaac is thinking</em></div>
                 </div>
-
                 <div class="composer-area">
-                    <form class="composer" id="chat-form">
-                        <textarea
-                            id="message-input"
-                            name="message"
-                            placeholder="Message Isaac AI..."
-                            rows="1"
-                            aria-label="Write your message"
-                            required
-                        ></textarea>
-
-                        <div class="composer-footer">
-                    
-                            <button
-                                class="send-button"
-                                id="send-button"
-                                type="submit"
-                                aria-label="Send message"
-                                title="Send message"
-                            >
-                                <span>↑</span>
-                            </button>
-                        </div>
+                    <form class="composer glass-panel" id="chat-form"><textarea id="message-input"
+                            placeholder="Message Isaac AI..." rows="1" aria-label="Write your message" maxlength="2000"
+                            required></textarea>
+                        <div class="composer-footer"><span class="composer-hint">SHIFT + ENTER FOR A NEW
+                                LINE</span><div class="composer-controls">
+                            <button class="stop-button" id="stop-button" type="button" hidden>Stop</button>
+                            <button class="send-button" id="send-button" type="submit"
+                                aria-label="Send message"><span>↑</span></button></div></div>
                     </form>
-
-                    <p class="disclaimer">
-                        AI can make mistakes. Check important information.
-                    </p>
+                    <p class="disclaimer">Isaac AI can make mistakes. Verify important information.</p>
                 </div>
             </section>
         </main>
     </div>
+    <div class="toast" id="toast" role="status"></div>
+    <dialog class="rename-dialog glass-panel" id="rename-dialog">
+        <form id="rename-form">
+            <h2>Rename conversation</h2><label for="rename-input">Conversation title</label><input id="rename-input"
+                maxlength="100" required>
+            <div class="dialog-actions"><button type="button" class="secondary-button"
+                    id="rename-cancel">Cancel</button><button type="submit" class="primary-button">Save title</button>
+            </div>
+        </form>
+    </dialog>
+    <!-- Markdown rendering -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+<!-- HTML sanitization -->
+<script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
 
-    <script src="script.js"></script>
+<!-- Syntax highlighting -->
+<link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css"
+>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+
+<!-- PDF export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
+
+<!-- Your application -->
+<script src="script.js"></script>
 </body>
+
 </html>

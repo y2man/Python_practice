@@ -75,6 +75,17 @@ class RenameConversationRequest(BaseModel):
             raise ValueError("Title cannot be empty.")
 
         return value
+class EditMessageRequest(BaseModel):
+    message_id: int
+    prompt: str = Field(min_length=1, max_length=2000)
+
+    @field_validator("prompt")
+    @classmethod
+    def validate_prompt(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("Prompt cannot be empty.")
+        return value
 def create_access_token(user_id: int):
     if not JWT_SECRET:
         raise HTTPException(
@@ -342,14 +353,95 @@ def get_conversation(
         "conversation_id": conversation.id,
         "title": conversation.title,
         "messages": [
-            {
-                "role": message.role,
-                "content": message.content,
-                "created_at": message.created_at
-            }
-            for message in conversation.messages
-        ]
+    {
+        "id": message.id,
+        "role": message.role,
+        "content": message.content,
+        "created_at": message.created_at
     }
+    for message in conversation.messages
+]
+    }
+
+@app.post("/conversations/{conversation_id}/edit-and-resend")
+def edit_and_resend(
+    conversation_id: int,
+    request: EditMessageRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    try:
+        conversation = db.query(Conversation).filter(
+            Conversation.id == conversation_id,
+            Conversation.user_id == current_user.id
+        ).first()
+
+        if conversation is None:
+            raise HTTPException(status_code=404, detail="Conversation not found.")
+
+        target = db.query(Message).filter(
+            Message.id == request.message_id,
+            Message.conversation_id == conversation_id,
+            Message.role == "user"
+        ).first()
+
+        if target is None:
+            raise HTTPException(status_code=404, detail="User message not found.")
+
+        # Keep messages before the edited message.
+        previous = db.query(Message).filter(
+            Message.conversation_id == conversation_id,
+            Message.id < target.id
+        ).order_by(Message.id.asc()).all()
+
+        messages = [
+            {"role": msg.role, "content": msg.content}
+            for msg in previous
+        ]
+        messages.append({"role": "user", "content": request.prompt})
+
+        if not api_key:
+            raise HTTPException(status_code=500, detail="Groq API key is not configured.")
+
+        completion = client.chat.completions.create(
+            model="openai/gpt-oss-120b",
+            messages=messages,
+            max_completion_tokens=500
+        )
+
+        answer = completion.choices[0].message.content
+        if not answer or not answer.strip():
+            raise HTTPException(status_code=502, detail="The AI service returned an empty answer.")
+
+        # Remove the edited message and everything after it.
+        db.query(Message).filter(
+            Message.conversation_id == conversation_id,
+            Message.id >= target.id
+        ).delete(synchronize_session=False)
+
+        db.add_all([
+            Message(conversation_id=conversation_id, role="user", content=request.prompt),
+            Message(conversation_id=conversation_id, role="assistant", content=answer)
+        ])
+
+        db.commit()
+
+        return {"conversation_id": conversation_id, "answer": answer}
+
+    except HTTPException:
+        db.rollback()
+        raise
+    except APIStatusError as e:
+        db.rollback()
+        print(f"Groq API status: {e.status_code}")
+        raise HTTPException(
+            status_code=429 if e.status_code == 429 else 502,
+            detail="The AI service could not generate a response."
+        )
+    except Exception as e:
+        db.rollback()
+        print(f"Edit error: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=502, detail="Could not edit and regenerate the response.")
 
 @app.get("/db-check")
 def db_check():
@@ -415,3 +507,79 @@ def login(
         "token_type": "bearer",
         "expires_in": ACCESS_TOKEN_EXPIRE_MINUTES * 60
     }
+
+@app.post("/conversations/{conversation_id}/regenerate")
+def regenerate_response(
+    conversation_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    try:
+        conversation = db.query(Conversation).filter(
+            Conversation.id == conversation_id,
+            Conversation.user_id == current_user.id
+        ).first()
+
+        if conversation is None:
+            raise HTTPException(status_code=404, detail="Conversation not found.")
+
+        history = db.query(Message).filter(
+            Message.conversation_id == conversation_id
+        ).order_by(Message.id.asc()).all()
+
+        last_user_index = next(
+            (i for i in range(len(history) - 1, -1, -1)
+             if history[i].role == "user"),
+            None
+        )
+
+        if last_user_index is None:
+            raise HTTPException(status_code=400, detail="No user message to regenerate.")
+
+        messages = [
+            {"role": msg.role, "content": msg.content}
+            for msg in history[:last_user_index + 1]
+        ]
+
+        if not api_key:
+            raise HTTPException(status_code=500, detail="Groq API key is not configured.")
+
+        completion = client.chat.completions.create(
+            model="openai/gpt-oss-120b",
+            messages=messages,
+            max_completion_tokens=500
+        )
+
+        answer = completion.choices[0].message.content
+        if not answer or not answer.strip():
+            raise HTTPException(status_code=502, detail="The AI service returned an empty answer.")
+
+        # Remove old messages after the last user message.
+        db.query(Message).filter(
+            Message.conversation_id == conversation_id,
+            Message.id > history[last_user_index].id
+        ).delete(synchronize_session=False)
+
+        db.add(Message(
+            conversation_id=conversation_id,
+            role="assistant",
+            content=answer
+        ))
+
+        db.commit()
+        return {"conversation_id": conversation_id, "answer": answer}
+
+    except HTTPException:
+        db.rollback()
+        raise
+    except APIStatusError as e:
+        db.rollback()
+        print(f"Groq API status: {e.status_code}")
+        raise HTTPException(
+            status_code=429 if e.status_code == 429 else 502,
+            detail="The AI service could not generate a response."
+        )
+    except Exception as e:
+        db.rollback()
+        print(f"Regenerate error: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=502, detail="Could not regenerate the response.")

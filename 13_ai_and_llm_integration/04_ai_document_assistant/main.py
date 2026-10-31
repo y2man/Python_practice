@@ -30,6 +30,8 @@ else:
 
             except FileNotFoundError:
                 return None
+            except OSError:
+                return None
 
         def send_request(document,question,api_key):
             if not api_key:
@@ -143,7 +145,7 @@ else:
 
             
         else:
-            print("Could not load the document.")
+            print("coudn't  read the document Please check whether the file exist,contain text or readable!")
             
         
 
